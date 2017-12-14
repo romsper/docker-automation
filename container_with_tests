@@ -1,0 +1,19 @@
+FROM {REGISTRY HOST}/docker_image/java_maven:latest
+MAINTAINER Roman Speransky
+
+ARG testSuit
+ENV testSuit=${testSuit}
+
+RUN mkdir -p /root/.ssh
+RUN ls -l
+ADD id_rsa /root/.ssh/id_rsa
+RUN chmod 400 /root/.ssh/id_rsa
+RUN chown root:root /root/.ssh/id_rsa
+RUN echo "Host gitlab.{HOST}\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config
+
+RUN git clone -b master git@{REPOSITORY}:automation/am-backend.git
+
+WORKDIR /am-backend
+RUN mvn install || true
+
+CMD mvn test -D SUITE=$testSuit
